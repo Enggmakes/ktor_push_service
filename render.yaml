@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: ktor-push-service
+    env: docker
+    plan: free
+    region: oregon 
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: FIREBASE_CREDENTIALS_PATH
+        value: /etc/secrets/firebase-adminsdk.json
