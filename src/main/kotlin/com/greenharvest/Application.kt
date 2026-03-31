@@ -11,7 +11,7 @@ import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.server.plugins.callloging.*
+import io.ktor.server.plugins.calllogging.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -21,7 +21,11 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import kotlinx.coroutines.*
 import java.io.InputStream
+import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 import org.slf4j.event.Level
+
+private val logger: Logger = LoggerFactory.getLogger("Application")
 
 fun main(args: Array<String>): Unit = EngineMain.main(args)
 
@@ -51,13 +55,13 @@ fun Application.module() {
             
             if (FirebaseApp.getApps().isEmpty()) {
                 FirebaseApp.initializeApp(options)
-                log.info("Firebase Admin SDK initialized successfully.")
+                logger.info("Firebase Admin SDK initialized successfully.")
             }
         } else {
-            log.warn("WARNING: firebase-adminsdk.json not found! Push notifications will fail.")
+            logger.warn("WARNING: firebase-adminsdk.json not found! Push notifications will fail.")
         }
     } catch (e: Exception) {
-        log.error("Failed to initialize Firebase Admin", e)
+        logger.error("Failed to initialize Firebase Admin", e)
     }
 
     // 4. Set up HTTP Routing
@@ -92,11 +96,11 @@ fun Application.module() {
 
                 // Send via FCM
                 val response = FirebaseMessaging.getInstance().send(message)
-                log.info("Successfully sent message: $response")
+                logger.info("Successfully sent message: $response")
 
                 call.respond(HttpStatusCode.OK, mapOf("success" to true, "messageId" to response))
             } catch (e: Exception) {
-                log.error("Failed to send notification via FCM", e)
+                logger.error("Failed to send notification via FCM", e)
                 call.respond(
                     HttpStatusCode.InternalServerError, 
                     mapOf("success" to false, "error" to e.localizedMessage)
@@ -116,7 +120,7 @@ fun Application.module() {
 fun Application.startKeepAlive() {
     val url = System.getenv("APP_URL")
     if (url.isNullOrBlank()) {
-        log.warn("WARNING: APP_URL environment variable not set. Self-wake loop disabled.")
+        logger.warn("WARNING: APP_URL environment variable not set. Self-wake loop disabled.")
         return
     }
 
@@ -124,20 +128,20 @@ fun Application.startKeepAlive() {
     
     // Launch background coroutine
     launch {
-        log.info("Starting self-wake loop for $url...")
+        logger.info("Starting self-wake loop for $url...")
         while (isActive) {
             try {
                 // Wait 12 minutes (Render sleeps after 15m of inactivity)
                 delay(12 * 60 * 1000L) 
                 
-                log.info("Self-wake pinging $url...")
+                logger.info("Self-wake pinging $url...")
                 val response = client.get(url)
-                log.info("Self-wake response status: ${response.status}")
+                logger.info("Self-wake response status: ${response.status}")
             } catch (e: CancellationException) {
-                log.info("Self-wake loop cancelled.")
+                logger.info("Self-wake loop cancelled.")
                 break
             } catch (e: Exception) {
-                log.error("Self-wake ping failed: ${e.message}")
+                logger.error("Self-wake ping failed: ${e.message}")
             }
         }
         client.close()

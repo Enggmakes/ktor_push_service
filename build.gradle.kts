@@ -32,8 +32,8 @@ dependencies {
     implementation("com.google.firebase:firebase-admin:9.2.0")
 
     // Ktor Client for Self-Wake Mechanism
-    implementation("io.ktor:ktor-client-core-jvm:2.3.8")
-    implementation("io.ktor:ktor-client-cio-jvm:2.3.8")
+    implementation("io.ktor:ktor-client-core-jvm")
+    implementation("io.ktor:ktor-client-cio-jvm")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
