@@ -42,9 +42,6 @@ fun Application.module() {
 
     // 3. Initialize Firebase Admin SDK
     try {
-        // We expect the user to provide a firebase-adminsdk.json file in the deployment environment.
-        // Render.com allows mounting secret files, or it can be packaged in src/main/resources (not recommended for public repos).
-        // For testing, look for it in the classpath or as a system environment path.
         val serviceAccountStream: InputStream? = this::class.java.classLoader.getResourceAsStream("firebase-adminsdk.json") 
             ?: System.getenv("FIREBASE_CREDENTIALS_PATH")?.let { java.io.File(it).inputStream() }
 
@@ -76,14 +73,10 @@ fun Application.module() {
 
         post("/api/v1/notify") {
             try {
-                // Parse incoming JSON body
                 val request = call.receive<NotificationRequest>()
                 
-                // Construct the Firebase Message
-                // This targets a specific Topic (e.g. user ID topic) or Token.
-                // Assuming we subscribe vendors to a topic matching their sellerId.
                 val message = Message.builder()
-                    .setTopic(request.targetId) // e.g., "seller_abc123"
+                    .setTopic(request.targetId)
                     .setNotification(
                         Notification.builder()
                             .setTitle(request.title)
@@ -94,7 +87,6 @@ fun Application.module() {
                     .putData("timestamp", request.timestamp ?: "")
                     .build()
 
-                // Send via FCM
                 val response = FirebaseMessaging.getInstance().send(message)
                 logger.info("Successfully sent message: $response")
 
