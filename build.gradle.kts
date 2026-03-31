@@ -24,8 +24,7 @@ dependencies {
     implementation("io.ktor:ktor-server-content-negotiation-jvm")
     implementation("io.ktor:ktor-serialization-jackson-jvm")
     
-    // Logging feature integration
-    implementation("io.ktor:ktor-server-call-logging-jvm")
+    // Logging (logback handles output, no Ktor CallLogging plugin needed)
     implementation("ch.qos.logback:logback-classic:1.4.14")
     
     // Firebase Admin SDK for Push Notifications
